@@ -175,12 +175,13 @@ public class CovidMiningApiTotalCasesImpl implements CovidMiningAPITotalCases {
 	}
 
 	@Override
-	public int getTotalfromDB() throws Exception {
+	public String getTotalfromDB() throws Exception {
 		log.info("getTotalfromDB starts. ");
 		List<CovidCasesAreaEntity> casesEntities = covidCasesRepository.listLast2Records();
 		log.info("getTotalfromDB casesEntities size ={} ", casesEntities.size());
 		
 		int totalCases = 0;
+		String date = "";
 		if (!casesEntities.isEmpty()) {
 			List<Covid19ApiModel> covidApiModels = new ArrayList<Covid19ApiModel>();
 
@@ -195,14 +196,16 @@ public class CovidMiningApiTotalCasesImpl implements CovidMiningAPITotalCases {
 			covidCasesAreaEntity = casesEntities.get(0);
 			log.info("getTotalfromDB covidCasesAreaEntity date={}, cases={}", covidCasesAreaEntity.getDate(),
 					covidCasesAreaEntity.getCases());
-
+			date = covidCasesAreaEntity.getDate().toString();
 			covid19ApiModel = new Covid19ApiModel();
 			covid19ApiModel.setCases(covidCasesAreaEntity.getCases());
 			covidApiModels.add(covid19ApiModel);
 			totalCases = getCasesDifferent(covidApiModels);
 		}
 
-		log.info("getTotalfromDB ends.  totalCases = {} ", totalCases);
-		return totalCases;
+		
+		
+		log.info("getTotalfromDB ends.  totalCases = {} date={}", totalCases,date);
+		return "Total Cases " + totalCases + " (" + date + ")";
 	}
 }
