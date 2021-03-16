@@ -16,11 +16,6 @@
 		<relativePath></relativePath>
 	</parent>
 
-	<properties>
-		<java.version>15</java.version>
-		<downloadSources>true</downloadSources>
-		<downloadJavadocs>true</downloadJavadocs>
-	</properties>
 
 	<dependencies>
 

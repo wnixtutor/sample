@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.app.entity.CovidAreaDescEntity;
+import com.app.entity.CovidCasesDescEntity;
 import com.app.entity.CovidCasesAreaEntity;
 import com.app.mapper.CovidAreaDescMapper;
 import com.app.model.CovidCasesArea;
@@ -30,6 +30,8 @@ public class CovidController {
 	private final static String GET_LATEST_COVID_FROM_DB = "/covid/get/latest";
 
 	private final static String GET_COVID = "/covid/get";
+
+	private final static String GET_COVID_DESC = "/covid/get/desc";
 
 	private final static String ADD_COVID = "/covid/add";
 
@@ -52,7 +54,7 @@ public class CovidController {
 	CovidMiningAPITotalCases covidMiningAPITotalCases;
 
 	@GetMapping(GET_LATEST_COVID_FROM_DB)
-	String getLatest() {
+	String getLatest() throws Exception {
 		log.info("getLatest() started");
 		String returnString = null;
 
@@ -61,14 +63,31 @@ public class CovidController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			log.error(" getLatest() exception " + e.getMessage());
+			throw new Exception(e.getMessage());
 		}
 
 		log.info(GET_LATEST_COVID_FROM_DB + "  return = {}" + returnString);
 		return returnString;
 	}
 
+	@GetMapping(GET_COVID_DESC)
+	List<CovidCasesDesc> findAllDesc() throws Exception {
+		log.info("findAll() started");
+		List<CovidCasesDesc> covidCasesdescs = null;
+		try {
+			covidCasesdescs = covidService.getCovidDesc();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			log.error(" findAll() exception " + e.getMessage());
+			throw new Exception(e.getMessage());
+		}
+
+		log.info(GET_COVID_DESC + "  return = {}" + covidCasesdescs);
+		return covidCasesdescs;
+	}
+
 	@GetMapping(GET_COVID)
-	List<CovidCasesArea> findAll() {
+	List<CovidCasesArea> findAll() throws Exception {
 		log.info("findAll() started");
 		List<CovidCasesArea> covidCasesAreas = null;
 		try {
@@ -76,6 +95,7 @@ public class CovidController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			log.error(" findAll() exception " + e.getMessage());
+			throw new Exception(e.getMessage());
 		}
 
 		log.info(GET_COVID + "  return = {}" + covidCasesAreas);
@@ -110,13 +130,17 @@ public class CovidController {
 
 	// TODO: Practical 4 (Add)
 	// Move the logic below under try/catch area to CovidServiceImpl
+	// check out the remarks of "TODO: Practical 4 " on CovidServiceImpl
 	@GetMapping(ADD_COVID)
-	CovidCasesDesc addCovid(@RequestParam(required = true) String desc) {
-		log.info("addCovid() started");
+	CovidCasesDesc addCovid(@RequestParam(required = true) String desc) throws Exception {
+		log.info("addCovid() started={}", desc);
 
 		CovidCasesDesc covidCasesDesc = null;
 		try {
 
+			if (desc == null || desc.equals("undefined") || desc.equals(""))  {
+				throw new NullPointerException(ADD_COVID + ", desc is null or empty");
+			}
 			List<CovidCasesAreaEntity> cases = covidCasesRepository.findAll();
 			CovidCasesAreaEntity covidCasesAreaEntity = cases.get(0);
 			CovidCasesAreaEntity covidCasesAreaEntityNew = new CovidCasesAreaEntity();
@@ -124,11 +148,11 @@ public class CovidController {
 			covidCasesAreaEntityNew.setArea(covidCasesAreaEntity.getArea());
 			covidCasesAreaEntityNew.setDate(new Date());
 
-			CovidAreaDescEntity covidAreaDescEntity = new CovidAreaDescEntity();
+			CovidCasesDescEntity covidAreaDescEntity = new CovidCasesDescEntity();
 
 			covidAreaDescEntity.setDescription(desc);
 
-			CovidAreaDescEntity savedEntity = covidCasesDescRepository.save(covidAreaDescEntity);
+			CovidCasesDescEntity savedEntity = covidCasesDescRepository.save(covidAreaDescEntity);
 
 			CovidAreaDescMapper mapper = Selma.builder(CovidAreaDescMapper.class).build();
 
@@ -136,6 +160,7 @@ public class CovidController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			log.error("add() exception " + e.getMessage());
+			throw new Exception(e.getMessage());
 		}
 
 		return covidCasesDesc;
@@ -143,25 +168,27 @@ public class CovidController {
 
 	// TODO: Practical 4 (Delete)
 	// Move the logic below under try/catch area to CovidServiceImpl
+	// check out the remarks of "TODO: Practical 4 " on CovidServiceImpl
 	@DeleteMapping(DELETE_COVID)
-	int deleteCovid(@RequestParam(required = true) long id) {
+	int deleteCovid(@RequestParam(required = true) long id) throws Exception {
 		log.info("deleteCovid() started id={}", id);
 
 		try {
 
-			Optional<CovidAreaDescEntity> entityOptional = covidCasesDescRepository.findById(id);
-			
+			Optional<CovidCasesDescEntity> entityOptional = covidCasesDescRepository.findById(id);
+
 			log.info("Entity found == " + entityOptional.isPresent());
-			
+
 			if (entityOptional.isPresent()) {
-				CovidAreaDescEntity covidAreaDescEntity= entityOptional.get();
+				CovidCasesDescEntity covidAreaDescEntity = entityOptional.get();
 				covidCasesDescRepository.delete(covidAreaDescEntity);
 				return 1;
 			}
-		
+
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			log.error("deleteCovid() exception " + e.getMessage());
+			throw new Exception(e.getMessage());
 		}
 
 		return 0;
